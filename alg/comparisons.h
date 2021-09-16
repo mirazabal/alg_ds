@@ -22,3 +22,47 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef ALGO_COMPARISONS
+#define ALGO_COMPARISONS 
+
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+static inline
+bool less_int(const void* a, const void* b)
+{
+  if(a == NULL)
+    return false;
+  if(b == NULL)
+    return true;
+ 
+  return *(int*)a < *(int*)b;
+};
+
+static inline
+bool less_uint(const void* a, const void* b)
+{
+  if(a == NULL)
+    return false;
+  if(b == NULL)
+    return true;
+
+  return *(uint64_t*)a < *(uint64_t*)b;
+};
+
+static inline
+bool greater_int(const void* a, const void* b)
+{
+  return less_int(b,a); 
+};
+
+static inline
+bool greater_uint(const void* a, const void* b)
+{
+  return less_uint(b,a); 
+};
+
+#endif
+

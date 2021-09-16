@@ -22,3 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef TC_ROTATE
+#define TC_ROTATE
+
+void* rotate(void* first, void* n_first, void* last, size_t elt_size);
+
+#endif
+
+
+
+

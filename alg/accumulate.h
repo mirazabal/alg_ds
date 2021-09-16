@@ -22,3 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef ACCUMULATE_H
+#define ACCUMULATE_H
+
+#include "../ds/seq_container/seq_generic.h"
+#include <stdint.h>
+
+uint64_t accumulate_u32(uint32_t* start, uint32_t* end);
+
+uint64_t accumulate_ring( seq_ring_t* r, void* start_it, void* end_it);
+
+#endif
+

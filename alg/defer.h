@@ -22,3 +22,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef DEFER_H
+#define DEFER_H
+
+/*
+ * Defer mechanism taken from http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2542.pdf
+ * It may become part of the C2X standard in <stddefer.h>
+ */
+
+
+#if defined __clang__  // requires -fblocks (lambdas)
+void cleanup_deferred (void (^*d) (void));
+#define defer(...) \
+__attribute__((__cleanup__(cleanup_deferred))) \
+    void (^DF_##__LINE__##__FILE__##__func__) (void) = ^__VA_ARGS__
+#elif defined __GNUC__ // nested-function-in-stmt-expressionstatic
+void cleanup_deferred (void (**d) (void));
+#define defer(...) \
+__attribute__((__cleanup__ (cleanup_deferred))) \
+void (*DF_##__LINE__##_func_##__func__##_file_##__FILE__) (void) = ({               \
+void DF_##__LINE__##_func_##__func__##_file_##__FILE__##__impl (void) __VA_ARGS__    \
+DF_##__LINE__##_func_##__func__##_file_##__FILE__##__impl; })
+#endif
+
+#endif
+

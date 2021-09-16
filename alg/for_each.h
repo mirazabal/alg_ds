@@ -22,3 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef FOR_EACH_ALGORITHM
+#define FOR_EACH_ALGORITHM
+
+#include "../ds/seq_container/seq_generic.h"
+
+void for_each_arr(seq_arr_t* arr, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data);
+
+#endif
+

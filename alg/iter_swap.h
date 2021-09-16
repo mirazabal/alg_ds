@@ -22,3 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef ITER_SWAP_H
+#define ITER_SWAP_H
+
+#include <stddef.h>
+
+void iter_swap(void* it_1, void* it_2, size_t elm_size);
+
+#endif
+
