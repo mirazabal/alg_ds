@@ -30,9 +30,22 @@ SOFTWARE.
 #include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 static 
 const int MIN_SIZE_HT = 16;
+
+typedef struct{
+  const void* key;
+  void* value;
+} kv_pair_t;
+
+typedef struct hentry_s{
+  kv_pair_t kv;
+  uint32_t hash;
+  bool is_dirty;
+  bool has_value;
+} hentry_t;
 
 static inline
 uint32_t hash_func(const void* key_v)
@@ -95,16 +108,15 @@ static
 void expand_or_shrink_if_neccesary(assoc_ht_open_t* htab)
 {
   if(htab->num_dirty * 2 > htab->cap){
-      rehash_table(htab, htab->cap * 2);
+    rehash_table(htab, htab->cap * 2);
   } else if (htab->sz * 4 < htab->cap && htab->cap > MIN_SIZE_HT){
-      rehash_table(htab, htab->cap/2);
+    rehash_table(htab, htab->cap/2);
   } 
   assert(htab->sz * 2 <= htab->cap);
   assert(htab->num_dirty * 2 <= htab->cap);
 }
 
-void assoc_ht_open_init(assoc_ht_open_t* htab, size_t key_sz, bool (*key_eq)(const void*, const void*))
-//void init_htab(htab_t* htab, hash_func_fp hf, key_eq_func_fp key_eq, free_key_value_func_fp free_kv)
+void assoc_ht_open_init(assoc_ht_open_t* htab, size_t key_sz, key_eq_func_fp  key_eq, free_func_ht_open_fp free_func)
 {
   assert(htab != NULL);
   assert(key_sz > 0);
@@ -114,53 +126,60 @@ void assoc_ht_open_init(assoc_ht_open_t* htab, size_t key_sz, bool (*key_eq)(con
   htab->cap = MIN_SIZE_HT;
   htab->sz = 0;
   htab->num_dirty = 0;
+  htab->key_sz = key_sz;
   htab->key_eq = key_eq;
+  htab->free_func = free_func;
 }
 
-void assoc_ht_open_free(assoc_ht_open_t* htab, void (*free_func)(void* key, void* value))
+void assoc_ht_open_free(assoc_ht_open_t* htab)
 {
   assert(htab != NULL);
 
     for(uint32_t i = 0; i < htab->cap; ++i){
       if(htab->arr[i].has_value == true){
         assert(htab->arr[i].is_dirty);
-        free_func(&htab->arr[i].kv.key, &htab->arr[i].kv.value);
+        if(htab->free_func != NULL)
+          htab->free_func((void*)htab->arr[i].kv.key, htab->arr[i].kv.value);
       }
     }
   free(htab->arr);
 }
 
 void assoc_ht_open_insert(assoc_ht_open_t* htab, void const* key, size_t key_sz, void* value)
-//void insert_kv_htab(htab_t* htab, const void* key, void* value)
 {
   assert(htab != NULL);
   assert(key != NULL);
   assert(value != NULL);
-
   assert(htab->key_sz == key_sz);
 
   expand_or_shrink_if_neccesary(htab);
-  assert(htab->num_dirty * 2 <= htab->cap );
+  assert(htab->num_dirty * 2 <= htab->cap);
 
   const uint32_t hash = hash_func(key);
   const uint32_t idx = find_idx(htab, key, hash);
   assert(idx < htab->cap); 
 
   hentry_t* entry = &htab->arr[idx];
+  // Replace if the key already exists
   if(entry->has_value == true){
     assert(entry->is_dirty == true);
-    htab->free_kv(&entry->kv);
-  } else
+    assert(htab->key_eq(key, entry->kv.key) == true && "Different keys?");
+//    htab->free_kv(&entry->kv);
+    free(entry->kv.value);
+  } else {
+    void* key_dst = malloc(key_sz);
+    assert(key_dst != NULL && "Memory exhausted");
+    memcpy(key_dst, key, key_sz);
+    entry->kv.key = key_dst; 
     htab->sz += 1;
+  }
 
-  entry->kv.key = key;
   entry->kv.value = value;
   entry->hash = hash;
   if(entry->is_dirty == false)
     htab->num_dirty += 1;
   entry->is_dirty = true;
   entry->has_value = true;
-
 }
 
 static
@@ -197,22 +216,64 @@ void remove_value_htab(assoc_ht_open_t* htab, const void* key)
   if(entry == NULL) return;
 
   assert(entry->is_dirty == true && entry->has_value == true);
-   
-  htab->free_kv(&entry->kv);
+  
+  free((void*)entry->kv.key);
+  free(entry->kv.value);
+//  htab->arr->kv free_kv(&entry->kv);
+
   entry->has_value = false;
   htab->sz -=1;
 }
 
-void* find_value_htab(assoc_ht_open_t* htab, const void* key)
+// It returns the void* of value. the void* of the key is freed
+void* assoc_ht_open_extract(assoc_ht_open_t* ht, void* key)
+{
+  assert(0!=0 && "Not implemented");
+  return NULL;
+};
+
+
+
+// Get the key from an iterator 
+void* assoc_ht_open_key(assoc_ht_open_t* ht, void* it)
+{
+  assert(0!=0 && "Not implemented in the hash table");
+  return NULL;
+}
+
+
+void* assoc_ht_open_value(assoc_ht_open_t* htab, const void* key)
 {
   assert(htab != NULL);
   assert(key != NULL);
   hentry_t* entry = find_entry(htab, key); 
 
-  return entry != NULL ? &entry->kv.value : NULL;
+  return entry != NULL ? entry->kv.value : NULL;
 }
 
+// Capacity
+size_t assoc_ht_open_size(assoc_ht_open_t* htab)
+{
+  assert(htab != NULL);
+  return htab->sz;
+}
 
+// Forward Iterator Concept
+void* assoc_ht_open_front(assoc_ht_open_t const* ht)
+{
+  assert(0!=0 && "Do not use a hash table for iterating");
+  return NULL;
+}
 
+void* assoc_ht_open_next(assoc_ht_open_t const* ht, void* it)
+{
+  assert(0!=0 && "Do not use a hash table for iterating");
+  return NULL;
+}
 
+void* assoc_ht_open_end(assoc_ht_open_t const* ht)
+{
+  assert(0!=0 && "Do not use a hash table for iterating");
+  return NULL;
+}
 
