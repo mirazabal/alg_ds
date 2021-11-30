@@ -55,7 +55,7 @@ void* find_if_ring(seq_ring_t* arr, void* start_it, void* end_it, void* value , 
 
 void* find_if_rb_tree(assoc_rb_tree_t* tree, void* start_it, void* end_it, void const* value, bool(*f)(const void*, const void*)); 
 
-void* find_reg(assoc_reg_t* reg, void* start_it, void* end_it, void* key_v);
+void* find_reg(assoc_reg_t* reg, void* start_it, void* end_it, uint32_t key);
 
 bml_iter_t find_if_bi_map_left(bi_map_t* map, bml_iter_t start_it, bml_iter_t end_it, void const* value, bool(*f)(const void*, const void*)); 
 

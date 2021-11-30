@@ -38,6 +38,8 @@ SOFTWARE.
 #include <stddef.h>
 #include <stdint.h>
 
+#include "../../ds/seq_container/seq_generic.h"
+
 typedef struct{
   uint32_t key;
   bool has_value;
@@ -54,8 +56,6 @@ typedef struct registry_s{
   size_t elm_sz;
   // monotonic increasing key id 
   size_t key_id;
-
-//  size_t (*bucket_sz)(struct registry_s* reg);
 } assoc_reg_t;
 
 
@@ -90,6 +90,8 @@ void* assoc_reg_next(assoc_reg_t* reg, void*);
 
 void* assoc_reg_end(assoc_reg_t* reg);
 
+
+seq_arr_t remove_if_range_reg(assoc_reg_t* reg, bool (*f)(void* data));
 
 //void for_all_registry(registry_t* reg, void (*f)(void*));
 

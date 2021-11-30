@@ -26,10 +26,11 @@ SOFTWARE.
 #define FOR_EACH_ALGORITHM
 
 #include "../ds/seq_container/seq_generic.h"
+#include "../ds/assoc_container/assoc_reg.h"
 
 void for_each_arr(seq_arr_t* arr, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data);
 
-void for_each_reg(registry_t* reg, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data); 
+void for_each_reg(assoc_reg_t* reg, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data); 
 
 
 #endif

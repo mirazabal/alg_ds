@@ -25,7 +25,6 @@ SOFTWARE.
 #include "find.h"
 #include <assert.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include "lower_bound.h"
 
 /*
@@ -74,22 +73,25 @@ void* find_if_ring(seq_ring_t* arr, void* start_it, void* end_it, void* value , 
 }
 
 
-void* find_reg(assoc_reg_t* reg, void* start_it, void* end_it, void* key_v)
+void* find_reg(assoc_reg_t* reg, void* start_it, void* end_it, uint32_t key)
 {
   assert(reg != NULL);
   assert(start_it != NULL);
   assert(end_it != NULL);
-  assert(key_v != NULL);
+  assert(key > 0 && "Reserved value");
+  if (start_it == end_it)
+    return end_it;
 
-  void* it = lower_bound_reg(reg, start_it, end_it, key_v);
+  void* it = lower_bound_reg(reg, start_it, end_it, key);
   assert(it <= end_it);
-  if(it == end_it) 
+  if(it == end_it){ 
     return end_it;
+  }
 
-  uint32_t const key = *(uint32_t*)key_v; 
   registry_bucket_t const* b = (registry_bucket_t*)it;
-  if(b->has_value == false || b->key != key)
+  if(b->has_value == false || b->key != key){
     return end_it;
+  }
 
   return it;
 }

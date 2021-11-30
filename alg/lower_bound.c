@@ -1,6 +1,7 @@
 #include "lower_bound.h"
 
 #include <assert.h>
+#include <stdio.h>
 
 static inline
 size_t bucket_sz(assoc_reg_t* reg)
@@ -9,7 +10,7 @@ size_t bucket_sz(assoc_reg_t* reg)
 }
 
 
-void* lower_bound_reg(assoc_reg_t* reg, void* start_it, void* end_it, void* key_v)
+void* lower_bound_reg(assoc_reg_t* reg, void* start_it, void* end_it, uint32_t key)
 {
   assert(reg != NULL);
   assert(start_it != NULL);
@@ -19,13 +20,9 @@ void* lower_bound_reg(assoc_reg_t* reg, void* start_it, void* end_it, void* key_
     return end_it;
 
   size_t const b_size = bucket_sz(reg);  
-
   size_t const sz = (end_it - start_it)/b_size; 
+
   assert(sz < reg->cap && "iterator out of the range"); 
-
-  assert(key_v != NULL);
-
-  uint32_t key = *(uint32_t*)key_v;
 
   size_t lower = 0;
   int len =  sz;
@@ -41,6 +38,7 @@ void* lower_bound_reg(assoc_reg_t* reg, void* start_it, void* end_it, void* key_
       len = half;
     }
   }
+
   return start_it + lower*b_size; 
 }
 

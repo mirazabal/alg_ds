@@ -36,13 +36,13 @@ void for_each_arr(seq_arr_t* arr, void* start_it, void* end_it, void(*f)(const v
 }
 
 static inline
-size_t bucket_sz(registry_t* reg)
+size_t bucket_sz(assoc_reg_t* reg)
 {
   return sizeof(registry_bucket_t) + sizeof( uint8_t[ reg->elm_sz] );
 }
 
 
-void for_each_reg(registry_t* reg, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data)
+void for_each_reg(assoc_reg_t* reg, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data)
 {
   assert(reg != NULL);
   assert(start_it != NULL);
