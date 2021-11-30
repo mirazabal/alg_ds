@@ -22,39 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "for_each.h"
-#include <assert.h>
 
-void for_each_arr(seq_arr_t* arr, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data)
-{
-  assert(arr != NULL);
-  assert(start_it != NULL);
-  assert(end_it != NULL);
-  for( ; start_it != end_it; start_it += arr->elt_size){
-    f(start_it,data);
-  }
-}
+#ifndef REMOVE_IF_ALGORITHM
+#define REMOVE_IF_ALGORITHM 
 
-static inline
-size_t bucket_sz(registry_t* reg)
-{
-  return sizeof(registry_bucket_t) + sizeof( uint8_t[ reg->elm_sz] );
-}
+#include <stdbool.h>
+#include "../ds/seq_container/seq_arr.h"
+#include "../ds/assoc_container/assoc_reg.h"
 
 
-void for_each_reg(registry_t* reg, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data)
-{
-  assert(reg != NULL);
-  assert(start_it != NULL);
+seq_arr_t remove_if_reg(assoc_reg_t * reg, bool (*f)(void* data));
 
-  size_t const b_size = bucket_sz(reg);  
-  assert( (start_it - reg->arr)/b_size < reg->cap && "Iterator out of the range"); 
-  assert(end_it != NULL);
+#endif
 
-  for( ; start_it != end_it; start_it += b_size){
-    registry_bucket_t const* b = start_it;
-    if(b->has_value)
-      f(start_it,data);
-  }
-}
 

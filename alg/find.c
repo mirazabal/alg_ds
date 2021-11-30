@@ -26,6 +26,8 @@ SOFTWARE.
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "lower_bound.h"
+
 /*
 void* find(void* start_it, void* end_it, void* value, bool (*f)(const void*, const void*))
 {
@@ -41,24 +43,11 @@ void* find(void* start_it, void* end_it, void* value, bool (*f)(const void*, con
 */
 
 
+
 void* find_if_list(const seq_list_t* l, void* start_it, void* end_it, void* value, bool (*f)(const void*, const void*))
 {
   assert(0 != 0 && "not implemented");
-  /*
-  printf("Find sequence seq_size = %lu\n",l->size);
-  while(start_it != end_it){
-    if(f(value, seq_value(l,start_it))){
-      printf("Value matched!!!\n");
-      return start_it;
-    }
-    printf("Advancing iterator!\n");
-    start_it = seq_next(l,start_it);
-  }
-  printf("Not Value matched!!!\n");
-  return start_it; 
-  */
 }
-
 
 void* find_if_arr(seq_arr_t* arr, void* start_it, void* end_it, void* value , bool(*f)(const void*, const void*))
 {
@@ -83,6 +72,28 @@ void* find_if_ring(seq_ring_t* arr, void* start_it, void* end_it, void* value , 
   }
   return start_it;
 }
+
+
+void* find_reg(assoc_reg_t* reg, void* start_it, void* end_it, void* key_v)
+{
+  assert(reg != NULL);
+  assert(start_it != NULL);
+  assert(end_it != NULL);
+  assert(key_v != NULL);
+
+  void* it = lower_bound_reg(reg, start_it, end_it, key_v);
+  assert(it <= end_it);
+  if(it == end_it) 
+    return end_it;
+
+  uint32_t const key = *(uint32_t*)key_v; 
+  registry_bucket_t const* b = (registry_bucket_t*)it;
+  if(b->has_value == false || b->key != key)
+    return end_it;
+
+  return it;
+}
+
 
 void* find_if_rb_tree(assoc_rb_tree_t* tree, void* start_it, void* end_it, void const* value, bool(*f)(const void*, const void*))
 {
@@ -125,7 +136,5 @@ bmr_iter_t find_if_bi_map_right(bi_map_t* map, bmr_iter_t start_it, bmr_iter_t e
 
   return start_it;
 }
-
-
 
 
