@@ -31,19 +31,37 @@ SOFTWARE.
  */
 
 
+
+#define TOKENPASTE(x, y) x ## y
+#define TOKENPASTE2(x, y) TOKENPASTE(x, y)
+#define UNIQUE_DF_FUNC TOKENPASTE2(DF_ , __COUNTER__) 
+#define UNIQUE_FUNC_IMPL TOKENPASTE2( DF_impl_ , __LINE__ ) 
+
+
+
 #if defined __clang__  // requires -fblocks (lambdas)
 void cleanup_deferred (void (^*d) (void));
 #define defer(...) \
+__attribute__((__cleanup__ (cleanup_deferred))) \
+__attribute__((unused)) void (^UNIQUE_DF_FUNC) (void) = ^__VA_ARGS__ 
+/*
 __attribute__((__cleanup__(cleanup_deferred))) \
     void (^DF_##__LINE__##__FILE__##__func__) (void) = ^__VA_ARGS__
+*/
 #elif defined __GNUC__ // nested-function-in-stmt-expressionstatic
 void cleanup_deferred (void (**d) (void));
 #define defer(...) \
 __attribute__((__cleanup__ (cleanup_deferred))) \
+void (*UNIQUE_DF_FUNC) (void) = ({               \
+void UNIQUE_FUNC_IMPL (void) __VA_ARGS__ UNIQUE_FUNC_IMPL; })
+#endif
+
+/*
+__attribute__((__cleanup__ (cleanup_deferred))) \
 void (*DF_##__LINE__##_func_##__func__##_file_##__FILE__) (void) = ({               \
 void DF_##__LINE__##_func_##__func__##_file_##__FILE__##__impl (void) __VA_ARGS__    \
 DF_##__LINE__##_func_##__func__##_file_##__FILE__##__impl; })
-#endif
+*/
 
 #endif
 

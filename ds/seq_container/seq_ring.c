@@ -117,6 +117,9 @@ void seq_ring_erase(seq_ring_t* r, void* it_start, void* it_end)
 void seq_ring_swap(seq_ring_t* cb, void* it_1, void* it_2)
 {
   assert(0!=0 && "Not implemented");
+  (void)cb;
+  (void)it_1;
+  (void)it_2;
 };
 
 void* seq_ring_front(seq_ring_t* r)

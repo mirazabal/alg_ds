@@ -46,6 +46,11 @@ void* find(void* start_it, void* end_it, void* value, bool (*f)(const void*, con
 void* find_if_list(const seq_list_t* l, void* start_it, void* end_it, void* value, bool (*f)(const void*, const void*))
 {
   assert(0 != 0 && "not implemented");
+  (void)l;
+  (void)start_it;
+  (void)end_it;
+  (void)value;
+  (void)f;
 }
 
 void* find_if_arr(seq_arr_t* arr, void* start_it, void* end_it, void* value , bool(*f)(const void*, const void*))
