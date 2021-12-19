@@ -30,12 +30,9 @@ SOFTWARE.
 #include "../ds/seq_container/seq_generic.h"
 #include "../ds/assoc_container/assoc_generic.h"
 #include "../ds/assoc_container/bimap.h"
-#include "../ds/assoc_container/assoc_reg.h"
 
 
 //void* find(void* start_it,void* end_it, void* value, bool (*f)(const void*, const void*));
-
-
 
 // Sequencial containers
 
@@ -44,11 +41,10 @@ void* find_if_list(const seq_list_t* l, void* start_it, void* end_it, void* valu
 
 void* find_if_arr(seq_arr_t* arr, void* start_it, void* end_it, void* value , bool(*f)(const void*, const void*));
 
+
 void* find_if_deque(const seq_deque_t* arr, void* start_it, void* end_it, void* value , bool(*f)(const void*, const void*));
 
 void* find_if_ring(seq_ring_t* arr, void* start_it, void* end_it, void* value , bool(*f)(const void*, const void*));
-
-
 
 
 // Associative containers

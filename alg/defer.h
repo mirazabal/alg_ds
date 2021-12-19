@@ -30,38 +30,43 @@ SOFTWARE.
  * It may become part of the C2X standard in <stddefer.h>
  */
 
+#define CONCAT_IMPL( x, y ) x##y
+#define MACRO_CONCAT( x, y ) CONCAT_IMPL( x, y )
+#define FUNC_DEFER4 MACRO_CONCAT(DF_, __LINE__ ) 
+#define FUNC_DEFER3 MACRO_CONCAT(FUNC_DEFER4, _line_ ) 
+#define FUNC_DEFER2 MACRO_CONCAT(FUNC_DEFER3, __COUNTER__ ) 
+#define FUNC_DEFER MACRO_CONCAT(FUNC_DEFER2, _counter ) 
+#define FUNC_DEFER_IMPL MACRO_CONCAT(FUNC_DEFER3, __impl ) 
 
 
+
+#if defined __clang__  // requires -fblocks (lambdas) and -lBlocksRuntime in the linker
+
+/*
 #define TOKENPASTE(x, y) x ## y
 #define TOKENPASTE2(x, y) TOKENPASTE(x, y)
 #define UNIQUE_DF_FUNC TOKENPASTE2(DF_ , __COUNTER__) 
 #define UNIQUE_FUNC_IMPL TOKENPASTE2( DF_impl_ , __LINE__ ) 
+*/
 
-
-
-#if defined __clang__  // requires -fblocks (lambdas)
 void cleanup_deferred (void (^*d) (void));
-#define defer(...) \
-__attribute__((__cleanup__ (cleanup_deferred))) \
-__attribute__((unused)) void (^UNIQUE_DF_FUNC) (void) = ^__VA_ARGS__ 
-/*
-__attribute__((__cleanup__(cleanup_deferred))) \
-    void (^DF_##__LINE__##__FILE__##__func__) (void) = ^__VA_ARGS__
-*/
-#elif defined __GNUC__ // nested-function-in-stmt-expressionstatic
-void cleanup_deferred (void (**d) (void));
-#define defer(...) \
-__attribute__((__cleanup__ (cleanup_deferred))) \
-void (*UNIQUE_DF_FUNC) (void) = ({               \
-void UNIQUE_FUNC_IMPL (void) __VA_ARGS__ UNIQUE_FUNC_IMPL; })
-#endif
 
-/*
+#define defer(...)       \
 __attribute__((__cleanup__ (cleanup_deferred))) \
-void (*DF_##__LINE__##_func_##__func__##_file_##__FILE__) (void) = ({               \
-void DF_##__LINE__##_func_##__func__##_file_##__FILE__##__impl (void) __VA_ARGS__    \
-DF_##__LINE__##_func_##__func__##_file_##__FILE__##__impl; })
-*/
+__attribute__((unused)) void (^FUNC_DEFER) (void) = ^__VA_ARGS__ 
+
+
+#elif defined __GNUC__ // nested-function-in-stmt-expression
+
+void cleanup_deferred (void (**d) (void));
+
+#define defer(...)  \
+  __attribute__((__cleanup__ (cleanup_deferred)))    \
+  void (*FUNC_DEFER) (void) = ({  \
+void  FUNC_DEFER_IMPL (void) __VA_ARGS__  \
+ FUNC_DEFER_IMPL; })
+
+#endif
 
 #endif
 

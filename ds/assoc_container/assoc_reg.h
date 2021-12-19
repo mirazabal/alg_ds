@@ -90,14 +90,11 @@ void* assoc_reg_next(assoc_reg_t* reg, void*);
 
 void* assoc_reg_end(assoc_reg_t* reg);
 
-
 seq_arr_t remove_if_range_reg(assoc_reg_t* reg, bool (*f)(void* data));
 
-//void for_all_registry(registry_t* reg, void (*f)(void*));
 
 // Just for test purposes
 void test_invariants_registry_hold(assoc_reg_t* reg);
  
 #endif
-
 

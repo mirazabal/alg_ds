@@ -35,6 +35,7 @@ void for_each_arr(seq_arr_t* arr, void* start_it, void* end_it, void(*f)(const v
   }
 }
 
+
 static inline
 size_t bucket_sz(assoc_reg_t* reg)
 {
@@ -50,7 +51,7 @@ void for_each_reg(assoc_reg_t* reg, void* start_it, void* end_it, void(*f)(const
   size_t const b_size = bucket_sz(reg);  
   assert( (start_it - reg->arr)/b_size < reg->cap && "Iterator out of the range"); 
   assert(end_it != NULL);
-
+ 
   for( ; start_it != end_it; start_it += b_size){
     registry_bucket_t const* b = start_it;
     if(b->has_value)

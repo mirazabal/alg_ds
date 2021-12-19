@@ -1,3 +1,4 @@
+
 /*
  * A Naive C implementation from the following article 
  *
@@ -18,4 +19,5 @@
 char* search_booyer_moore(size_t len_needle, char needle[len_needle], size_t len_haystack, char haystack[len_haystack]);
 
 #endif
+
 

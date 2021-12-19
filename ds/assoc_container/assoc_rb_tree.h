@@ -80,7 +80,7 @@ void* assoc_rb_tree_value(assoc_rb_tree_t* tree, void* it);
 size_t assoc_rb_tree_size(assoc_rb_tree_t* tree);
 
 // Forward Iterator Concept
-void* assoc_rb_tree_front(assoc_rb_tree_t const* tree);
+void* assoc_rb_tree_front(assoc_rb_tree_t const* treea);
 
 void* assoc_rb_tree_next(assoc_rb_tree_t const* tree, void* it);
 

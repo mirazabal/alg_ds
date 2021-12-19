@@ -27,7 +27,7 @@ SOFTWARE.
 
 #include "assoc_rb_tree.h" 
 #include "assoc_ht_open_address.h"
-
+#include "assoc_reg.h"
 
 // Initialization
 #define assoc_init(T, KS, C, F) _Generic ((T), assoc_rb_tree_t*: assoc_rb_tree_init, \

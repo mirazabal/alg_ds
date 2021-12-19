@@ -42,3 +42,4 @@ void* lower_bound_reg(assoc_reg_t* reg, void* start_it, void* end_it, uint32_t k
   return start_it + lower*b_size; 
 }
 
+

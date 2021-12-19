@@ -30,8 +30,8 @@ SOFTWARE.
 
 void for_each_arr(seq_arr_t* arr, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data);
 
-void for_each_reg(assoc_reg_t* reg, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data); 
 
+void for_each_reg(assoc_reg_t* reg, void* start_it, void* end_it, void(*f)(const void*, const void*), void* data); 
 
 #endif
 

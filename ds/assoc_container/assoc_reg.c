@@ -1,3 +1,5 @@
+
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +8,7 @@
 #include "assoc_reg.h"
 
 static
-const int MIN_SIZE = 16;
+const size_t MIN_SIZE = 16;
 
 static inline
 size_t bucket_sz(assoc_reg_t* reg)
@@ -207,7 +209,7 @@ void* assoc_reg_key(assoc_reg_t* reg, void* it)
 // Get the value pointer from an iterator
 void* assoc_reg_value(assoc_reg_t* reg, void* it)
 {
-  assert(reg != NULL);
+ assert(reg != NULL);
   assert(it != NULL);
 
   assert(iterator_in_ds(reg, it) == true && "Iterator out of range");
@@ -310,7 +312,7 @@ void test_invariants_registry_hold(assoc_reg_t* reg)
   uint32_t counter = 0;
   int64_t last_key = -1;
   // Test monotonic order
-  for(int i =0; i < reg->occ_bucket; ++i){
+  for(size_t i =0; i < reg->occ_bucket; ++i){
     registry_bucket_t* b = reg->arr + b_size*i;
     if(b->has_value)
       ++counter;
@@ -330,7 +332,7 @@ seq_arr_t remove_if_range_reg(assoc_reg_t* reg, bool (*f)(void* data))
   seq_init(&arr, sizeof(uint32_t));
 
   const size_t b_size = bucket_sz(reg);
-  for(int i =0; i < reg->occ_bucket; ++i){
+  for(size_t i =0; i < reg->occ_bucket; ++i){
     registry_bucket_t* b = reg->arr + b_size*i;
     if(b->has_value && f(b->val) == true){
       static_assert(sizeof( b->key ) == sizeof(uint32_t), "Data size mismatch");
