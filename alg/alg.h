@@ -56,6 +56,11 @@ SOFTWARE.
     } while(0)
 
 
+#define accumulate(T,U,W) _Generic ((T), seq_ring_t*: accumulate_ring, \
+                                          default:  accumulate_ring) (T,U,W)
+
+
+
 #define find_if(T,U,W,X,Y) _Generic ((T), seq_arr_t*:  find_if_arr, \
                                           seq_list_t*: find_if_list,\
                                           seq_ring_t*: find_if_ring, \
@@ -67,11 +72,16 @@ SOFTWARE.
                                         default:  for_each_arr)(T,U,W,X,Y)
 
 
+#define midpoint(T,U) _Generic((T), uint8_t :  midpoint_u8, \
+                                    uint16_t : midpoint_u16, \
+                                    uint32_t : midpoint_u32, \
+                                    uint64_t : midpoint_u64, \
+                                    int8_t :  midpoint_i8, \
+                                    int16_t : midpoint_i16, \
+                                    int32_t : midpoint_i32, \
+                                    int64_t : midpoint_i64, \
+                                    default:  midpoint_u64(T,U)
 
-
-
-#define accumulate(T,U,W) _Generic ((T), seq_ring_t*: accumulate_ring, \
-                                          default:  accumulate_ring) (T,U,W)
 
 
 // Should iterator swap come at some point...
