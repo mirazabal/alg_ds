@@ -41,7 +41,7 @@ void mir_dummy_lock_guard_const(){};
 
 // __attribute__((unused)) 
 
-#define CHECK_TYPE_INLINE(val, type) _Generic((val), type: mir_dummy_lock_guard, const type: mir_dummy_lock_guard_const)(val)
+#define CHECK_TYPE_INLINE(val, type) (void)_Generic((val), type: mir_dummy_lock_guard, const type: mir_dummy_lock_guard_const)
 
 #define lock_guard(X) \
   do{ CHECK_TYPE_INLINE(X, pthread_mutex_t*);\
