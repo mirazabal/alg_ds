@@ -30,6 +30,8 @@ SOFTWARE.
 
 void* lower_bound_reg(assoc_reg_t* reg, void* start_it, void* end_it, uint32_t key);
 
+void* lower_bound_ring(seq_ring_t* r, void* start_it, void* end_it, void* val, bool (*f)(void* val, void* it));
+
 #endif
 
 
