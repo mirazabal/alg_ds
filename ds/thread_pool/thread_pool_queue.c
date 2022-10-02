@@ -46,7 +46,7 @@ void free_thread_pool_queue(thread_pool_queue_t* l, void (*free_func)(void*) )
 
   while(l->head != NULL){
     if(free_func != NULL)
-      free_func(l->head->val);
+      free_func(&l->head->t);
 
     thread_pool_queue_node_t* it = l->head;
     l->head = l->head->next;
@@ -55,15 +55,16 @@ void free_thread_pool_queue(thread_pool_queue_t* l, void (*free_func)(void*) )
 
 }
 
-void enqueue_thread_pool_queue(thread_pool_queue_t* l, void* v)
+void enqueue_thread_pool_queue(thread_pool_queue_t* l, task_t t)
 {
   assert(l != NULL);
-  assert(v != NULL);
+  assert(t.func != NULL);
+  assert(t.args != NULL);
 
   thread_pool_queue_node_t* n = malloc(sizeof(thread_pool_queue_node_t));
   assert(n != NULL);
   n->next = NULL;
-  n->val = v;
+  n->t = t;
 
   if(l->tail != NULL)
     l->tail->next = n;
@@ -75,19 +76,19 @@ void enqueue_thread_pool_queue(thread_pool_queue_t* l, void* v)
     l->head = n;
 }
 
-void* dequeue_thread_pool_queue(thread_pool_queue_t* l)
+task_t dequeue_thread_pool_queue(thread_pool_queue_t* l)
 {
   assert(l != NULL);
   if(l->sz == 0)
-    return NULL;
+    return (task_t){.func=NULL, .args= NULL};
 
   thread_pool_queue_node_t* it = l->head;
 
-  void* v = l->head->val;
+  task_t t = l->head->t;
   l->head = l->head->next;
   free(it); 
 
   l->sz -= 1;
-  return v;
+  return t;
 }
 

@@ -30,10 +30,11 @@ SOFTWARE.
 #define NAIVE_THREAD_POOL_QUEUE_H 
 
 #include <stddef.h>
+#include "task.h"
 
 typedef struct thread_pool_queue_node_s{
   struct thread_pool_queue_node_s* next;
-  void* val;
+  task_t t;
 } thread_pool_queue_node_t;
 
 typedef struct{
@@ -46,9 +47,9 @@ void init_thread_pool_queue(thread_pool_queue_t* l);
 
 void free_thread_pool_queue(thread_pool_queue_t* l, void (*free_func)(void*) );
 
-void enqueue_thread_pool_queue(thread_pool_queue_t* l, void* v);
+void enqueue_thread_pool_queue(thread_pool_queue_t* l, task_t t);
 
-void* dequeue_thread_pool_queue(thread_pool_queue_t* l);
+task_t dequeue_thread_pool_queue(thread_pool_queue_t* l);
 
 #endif
 

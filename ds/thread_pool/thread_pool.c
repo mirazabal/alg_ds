@@ -36,47 +36,44 @@ void* worker_thread_pool(void* arg)
 
   while(true){
        
-    pthread_mutex_lock(&p->mtx);
+    int rc = pthread_mutex_lock(&p->mtx);
+    assert(rc == 0);
 
     while(p->stop_token == false && p->q.sz == 0){
-      pthread_cond_wait(&p->cond , &p->mtx);
+      rc = pthread_cond_wait(&p->cond , &p->mtx);
+      assert(rc == 0);
     }
 
     if(p->stop_token == true){
-      pthread_mutex_unlock(&p->mtx);
+      rc = pthread_mutex_unlock(&p->mtx);
+      assert(rc == 0);
       break;
     }
 
-    void* v = dequeue_thread_pool_queue(&p->q); 
+    task_t t = dequeue_thread_pool_queue(&p->q); 
 
     pthread_mutex_unlock(&p->mtx);
 
-    p->worker_func(v);
-
+    t.func(t.args);
   } 
 
   return NULL;
 }
 
-
-void init_thread_pool(thread_pool_t* p, uint32_t num_threads, void (*work_func)(void*), void (*free_func)(void*) )
+void init_thread_pool(thread_pool_t* p, uint32_t num_threads)
 {
   assert(p != NULL);
-  assert(work_func != NULL);
-  assert(free_func != NULL);
   assert(num_threads < 16 && "Do you really want to use so many threads?");
 
-  p->worker_func = work_func;
-  p->free_func = free_func;
   p->num_threads = num_threads;
 
   init_thread_pool_queue(&p->q);
 
-  pthread_mutexattr_t* attr = NULL;
-#ifdef DEBUG
-  pthread_mutexattr_settype(attr, PTHREAD_MUTEX_ERRORCHECK);
+  pthread_mutexattr_t attr = {0};
+#ifdef DEBUG 
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
 #endif
-  int rc = pthread_mutex_init(&p->mtx, attr);
+  int rc = pthread_mutex_init(&p->mtx, &attr);
   assert(rc == 0 && "Error while creating the mtx");
 
   pthread_condattr_t* c_attr = NULL; 
@@ -94,41 +91,49 @@ void init_thread_pool(thread_pool_t* p, uint32_t num_threads, void (*work_func)(
   }
 }
 
-void stop_thread_pool(thread_pool_t* p)
+void stop_thread_pool(thread_pool_t* p, void (*free_func)(void*))
 {
   assert(p != NULL);
 
-  pthread_mutex_lock(&p->mtx);
+  int rc = pthread_mutex_lock(&p->mtx);
+  assert(rc == 0);
   p->stop_token = true;
-  pthread_mutex_unlock(&p->mtx);
+  rc = pthread_mutex_unlock(&p->mtx);
+  assert(rc == 0);
+
+  rc = pthread_cond_broadcast(&p->cond);
+  assert(rc == 0);
 
   for(size_t i = 0; i < p->num_threads; ++i){
     pthread_join(p->t_arr[i], NULL);
   }
+
   free(p->t_arr);
-
   
-
-  int rc = pthread_mutex_destroy(&p->mtx);
+  rc = pthread_mutex_destroy(&p->mtx);
   assert(rc == 0);
 
   rc = pthread_cond_destroy(&p->cond);
   assert(rc == 0);
   
-  free_thread_pool_queue(&p->q, p->free_func);
+  free_thread_pool_queue(&p->q, free_func);
 }
 
-void add_value_thread_pool(thread_pool_t* p, void* value)
+void async_thread_pool(thread_pool_t* p, task_t t)
 {
   assert(p != NULL);
-  assert(value != NULL);
+  assert(t.func != NULL);
+  assert(t.args != NULL);
 
-  pthread_mutex_lock(&p->mtx);
+  int rc = pthread_mutex_lock(&p->mtx);
+  assert(rc == 0);
 
-  enqueue_thread_pool_queue(&p->q, value);
+  enqueue_thread_pool_queue(&p->q, t);
 
-  pthread_cond_signal(&p->cond);
+  rc = pthread_mutex_unlock(&p->mtx);
+  assert(rc == 0);
 
-  pthread_mutex_unlock(&p->mtx);
+  rc = pthread_cond_signal(&p->cond);
+  assert(rc == 0);
 }
 

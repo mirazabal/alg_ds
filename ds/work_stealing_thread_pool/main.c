@@ -22,8 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "thread_pool.h"
-#include "task.h"
+#include "task_manager.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -64,44 +63,50 @@ int64_t naive_fibonnacci(int64_t a)
   return naive_fibonnacci(a-1) + naive_fibonnacci(a-2);
 }
 
+
+static __thread int b = 40;
+
 static
 void do_work(void* arg)
 {
   int64_t* a = (int64_t*)arg;
-  naive_fibonnacci(30);
 
-  //printf("time do_work %ld \n", time_now_us() );
+//  b = b - 1; 
+
+//  printf("Value of b = %d\n", b);
+//  if(b < 10)
+    naive_fibonnacci(30);
+//  else 
+//    naive_fibonnacci(b);
+
+//  printf("time do_work %ld \n", time_now_us() );
 
 //  pid_t tid = syscall(__NR_gettid);
 //  printf("Thread tid = %d \n", tid);
   free(a);
 }
 
-static
-void free_val(void* arg)
+void clean_func(void* arg)
 {
-  int* a = (int*)arg;
-  free(a);
+  task_t* t = (task_t*)arg;
+  free((int*)t->args);
 }
 
 int main()
 {
-  thread_pool_t p;
-  init_thread_pool(&p, 8);
-
-  srand(time(0));
+  task_manager_t man;
+  init_task_manager(&man, 8);
 
   printf("Starting %ld \n", time_now_us() );
   for(int i = 0; i < 64*1024; ++i){
     int64_t* a = malloc(sizeof(int64_t));
     *a =  time_now_us();
-    task_t t  = { .func=do_work, .args = a };
-    async_thread_pool(&p, t);
+    task_t t = {.func = do_work, .args = a};
+    async_task_manager(&man, t);
   }
 
   sleep(35); 
-  printf("Stopping thread pool\n");
-  stop_thread_pool(&p, free_val);
+  free_task_manager(&man, clean_func);
 
   return EXIT_SUCCESS;
 }

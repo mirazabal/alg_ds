@@ -36,30 +36,27 @@ SOFTWARE.
 #include <stddef.h>
 #include <stdint.h>
 
+#include "task.h"
 #include "thread_pool_queue.h"
 
 typedef struct{
  
-  void (*free_func)(void*);
-  void (*worker_func)(void*);
-
   thread_pool_queue_t q;
 
   pthread_mutex_t mtx;
   pthread_cond_t cond;
 
-  bool stop_token;
-
   uint32_t num_threads; 
   pthread_t* t_arr;
 
+  bool stop_token;
 } thread_pool_t;
 
-void init_thread_pool(thread_pool_t* p, uint32_t num_threads, void (*work_func)(void*), void (*free_func)(void*) );
+void init_thread_pool(thread_pool_t* p, uint32_t num_threads );
 
-void stop_thread_pool(thread_pool_t* p);
+void stop_thread_pool(thread_pool_t* p, void (*free_func)(void*));
 
-void add_value_thread_pool(thread_pool_t* p, void* value);
+void async_thread_pool(thread_pool_t* p, task_t t);
 
 #endif
 
