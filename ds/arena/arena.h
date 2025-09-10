@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2022 Mikel Irazabal
+Copyright (c) 2025 Mikel Irazabal
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/*
- * Single Linked List for the Thread Pool
-*/
+#ifndef ARENA_MIR_H
+#define ARENA_MIR_H
 
-#ifndef NAIVE_THREAD_POOL_QUEUE_H
-#define NAIVE_THREAD_POOL_QUEUE_H 
+#include <stdlib.h>
+#include <stdint.h>
 
-#include <stddef.h>
-#include "task.h"
+void* init_arena(void);
 
-typedef struct thread_pool_queue_node_s{
-  struct thread_pool_queue_node_s* next;
-  task_t t;
-} thread_pool_queue_node_t;
+void free_arena(void* ctx);
 
-typedef struct{
- thread_pool_queue_node_t* head;
- thread_pool_queue_node_t* tail;
- size_t sz;
-} thread_pool_queue_t;
+void* alloc_arena(void* ctx,uint64_t sz, uint64_t align);
 
-void init_thread_pool_queue(thread_pool_queue_t* l);
-
-void free_thread_pool_queue(thread_pool_queue_t* l, void (*free_func)(void*) );
-
-void enqueue_thread_pool_queue(thread_pool_queue_t* l, task_t t);
-
-task_t dequeue_thread_pool_queue(thread_pool_queue_t* l);
+void reset_arena(void* ctx);
 
 #endif
-

@@ -24,39 +24,41 @@ SOFTWARE.
 
 
 /*
- * Minimal POSIX Thread Pool  
-*/
+ * Thread Safe Notification Queue. 
+ * Inspired by Anthony Williams C++ Concurrency in Action Book, Section 6.2
+ */
 
 
-#ifndef NAIVE_POSIX_THREAD_POOL_H
-#define NAIVE_POSIX_THREAD_POOL_H 
+#ifndef THREAD_SAFE_NOTIFICATION_QUEUE_MIR_H
+#define THREAD_SAFE_NOTIFICATION_QUEUE_MIR_H 
 
-#include <pthread.h>
+#include <stdatomic.h>
 #include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <pthread.h>
 
-#include "task.h"
-#include "thread_pool_queue.h"
+#include "../seq_container/seq_generic.h"
 
 typedef struct{
- 
-  thread_pool_queue_t q;
-
   pthread_mutex_t mtx;
-  pthread_cond_t cond;
+  pthread_cond_t cv;
+  seq_ring_t r;
+  atomic_bool stop_token;
+  atomic_bool stopped;
+} tsnq_t;
 
-  uint32_t num_threads; 
-  pthread_t* t_arr;
+void init_tsnq(tsnq_t* q, size_t elm_sz);
 
-  bool stop_token;
-} thread_pool_t;
+void free_tsnq(tsnq_t* q, void (*f)(void*) ) ;
 
-void init_thread_pool(thread_pool_t* p, uint32_t num_threads );
+void push_tsnq(tsnq_t* q, void* val, size_t size);
 
-void stop_thread_pool(thread_pool_t* p, void (*free_func)(void*));
+void* wait_and_pop_tsnq(tsnq_t* q, void* (*f)(void*) );
 
-void async_thread_pool(thread_pool_t* p, task_t t);
+void* pop_tsnq_10(tsnq_t* q, void* (*f)(void*) );
+
+void* pop_tsnq_100(tsnq_t* q, void* (*f)(void*) );
+
+size_t size_tsnq(tsnq_t* q);
 
 #endif
 

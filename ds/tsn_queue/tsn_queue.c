@@ -22,15 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-
-
 #include <assert.h>
 #include <unistd.h>
 
 #include "../lock_guard/lock_guard.h"
-#include "ts_queue.h"
+#include "tsn_queue.h"
 
-void init_tsq(tsq_t* q, size_t elm_sz)
+void init_tsnq(tsnq_t* q, size_t elm_sz)
 {
   assert(q != NULL);
   assert(elm_sz > 0);
@@ -40,6 +38,7 @@ void init_tsq(tsq_t* q, size_t elm_sz)
   const pthread_condattr_t* cond_attr = NULL;
   int rc = pthread_cond_init(&q->cv, cond_attr);
   assert(rc == 0);
+  (void)rc;
 
   pthread_mutexattr_t *mtx_attr = NULL;
 #ifdef DEBUG
@@ -53,13 +52,16 @@ void init_tsq(tsq_t* q, size_t elm_sz)
   q->stopped = false;
 }
 
-void free_tsq(tsq_t* q, void (*f)(void*) )
+void free_tsnq(tsnq_t* q, void (*f)(void*) )
 {
   assert(q != NULL);
 
   q->stop_token = true;
 
+ {
+  lock_guard(&q->mtx);
   pthread_cond_signal(&q->cv);
+ }
 
   while(q->stopped == false)
     usleep(1000);
@@ -71,32 +73,31 @@ void free_tsq(tsq_t* q, void (*f)(void*) )
 
   rc = pthread_mutex_destroy(&q->mtx);
   assert(rc == 0); 
-
+  (void)rc;
 }
 
-void push_tsq(tsq_t* q, void* val, size_t sz)
+void push_tsnq(tsnq_t* q, void* val, size_t sz)
 {
-  {
   lock_guard(&q->mtx);
 
   seq_push_back(&q->r, val, sz);
-  }
   pthread_cond_signal(&q->cv);
 }
 
-void* wait_and_pop_tsq(tsq_t* q, void* (*f)(void*) )
+void* wait_and_pop_tsnq(tsnq_t* q, void* (*f)(void*) )
 {
   assert(q != NULL);
 
   pthread_mutex_lock(&q->mtx);
 
   int rc = 0;
-  while(seq_size(&q->r) == 0 && rc == 0 && q->stop_token == false) {
+  while((seq_size(&q->r) == 0) && rc == 0 && q->stop_token == false) {
     rc = pthread_cond_wait(&q->cv, &q->mtx);
   }
 
   if(q->stop_token == true){
     pthread_mutex_unlock(&q->mtx);
+    q->stopped = true;
     return NULL;
   }
 
@@ -116,4 +117,74 @@ void* wait_and_pop_tsq(tsq_t* q, void* (*f)(void*) )
   return elm;
 }
 
+void* pop_tsnq_10(tsnq_t* q, void* (*f)(void*) )
+{
+  assert(q != NULL);
+
+  pthread_mutex_lock(&q->mtx);
+
+  if(q->stop_token == true){
+    pthread_mutex_unlock(&q->mtx);
+    q->stopped = true;
+    return NULL;
+  }
+
+  assert(seq_size(&q->r) >= 10);
+
+  void* it = seq_ring_front(&q->r);
+
+  void* elm = NULL;
+  
+  assert(it != seq_end(&q->r));
+  void* next = it;
+  for(int i = 0; i < 10; ++i){
+    elm = f(next);  
+    next = seq_next(&q->r, next);
+  } 
+  seq_erase(&q->r, it, next);
+
+  pthread_mutex_unlock(&q->mtx);
+
+  return elm;
+}
+
+void* pop_tsnq_100(tsnq_t* q, void* (*f)(void*) )
+{
+  assert(q != NULL);
+
+  pthread_mutex_lock(&q->mtx);
+
+  if(q->stop_token == true){
+    pthread_mutex_unlock(&q->mtx);
+    q->stopped = true;
+    return NULL;
+  }
+
+  assert(seq_size(&q->r) >= 100);
+
+  void* it = seq_ring_front(&q->r);
+
+  void* elm = NULL;
+
+  assert(it != seq_end(&q->r));
+  void* next = it;
+  for(int i = 0; i < 100; ++i){
+    elm = f(next);  
+    next = seq_next(&q->r, next);
+  }
+
+  seq_erase(&q->r, it, next);
+
+  pthread_mutex_unlock(&q->mtx);
+
+  return elm;
+}
+
+size_t size_tsnq(tsnq_t* q)
+{
+  assert(q != NULL);
+  
+  lock_guard(&q->mtx);
+  return seq_size(&q->r);
+}
 

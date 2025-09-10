@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(ts_queue)
+project(tsn_queue)
 
 set(default_build_type "Debug")
 
@@ -37,14 +37,14 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_executable(ts_queue 
-  test_ts_queue.c  
-  ../../seq_container/seq_ring.c
-  ts_queue.c
-  ../../alg/defer.c
+add_executable(tsn_queue 
+  test_tsn_queue.c  
+  ${CMAKE_SOURCE_DIR}/src/util/alg_ds/ds/seq_container/seq_ring.c
+  tsn_queue.c
+  ${CMAKE_SOURCE_DIR}/src/util/alg_ds/alg/defer.c
   )
   
-target_link_libraries(ts_queue -lpthread )
+target_link_libraries(tsn_queue -lpthread )
 
 # Create YouCompleteMe json files
 SET( CMAKE_EXPORT_COMPILE_COMMANDS ON )
@@ -54,5 +54,8 @@ IF( EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" )
     ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
   )
 ENDIF()
+
+enable_testing()
+add_test(Unit_test_tsn_queue tsn_queue)
 
 

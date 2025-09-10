@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2022 Mikel Irazabal
+Copyright (c) 2024 Mikel Irazabal
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,37 +22,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef LATCH_CONDITION_VARIABLE_MIR_H
+#define LATCH_CONDITION_VARIABLE_MIR_H 
 
-/*
- * Thread Safe Queue. 
- * Inspired by Anthony Williams C++ Concurrency in Action Book, Section 6.2
- */
+// Interface mimicking c++20 std::latch
+// https://en.cppreference.com/w/cpp/thread/latch
 
-
-#ifndef THREAD_SAFE_QUEUE_MIR_H
-#define THREAD_SAFE_QUEUE_MIR_H 
 
 #include <stdatomic.h>
-#include <stdbool.h>
 #include <pthread.h>
 
-#include "../seq_container/seq_generic.h"
+typedef struct {
+  pthread_mutex_t mtx; 
+  pthread_cond_t cond; 
+  atomic_int cnt;
+} latch_cv_t;
 
-typedef struct{
-  pthread_mutex_t mtx;
-  pthread_cond_t cv;
-  seq_ring_t r;
-  atomic_bool stop_token;
-  atomic_bool stopped;
-} tsq_t;
+latch_cv_t init_latch_cv(size_t cnt);
 
-void init_tsq(tsq_t* q, size_t elm_sz);
+void free_latch_cv(latch_cv_t* l);
 
-void free_tsq(tsq_t* q, void (*f)(void*) ) ;
+void count_down_latch_cv(latch_cv_t* l);
 
-void push_tsq(tsq_t* q, void* val, size_t size);
+void wait_latch_cv(latch_cv_t* l);
 
-void* wait_and_pop_tsq(tsq_t* q, void* (*f)(void*) );
+int wait_timeout_latch_cv(latch_cv_t* l, int timeout_sec);
 
 #endif
 

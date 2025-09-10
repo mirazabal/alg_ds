@@ -22,84 +22,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <assert.h>
+#ifndef TASK_MANAGER_WORKING_STEALING_H
+#define TASK_MANAGER_WORKING_STEALING_H 
+
 #include <pthread.h>
-#include <stdbool.h>
+#include <stdatomic.h>
 #include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
 
-#include "ts_queue.h"
+typedef struct{
+  void* args;
+  void (*func)(void* args);
+} task_t;
 
+typedef struct{
+  pthread_t* t_arr;
+  size_t len_thr;
+  atomic_uint_fast64_t index;
+  void* q_arr;
+} task_manager_t;
 
-typedef struct
-{
-  bool has_value;
-  uint8_t val[1024];
-  uint32_t n;
-} val_t;
+void init_task_manager(task_manager_t* man, uint32_t num_threads);
 
-static
-pthread_t t;
+void free_task_manager(task_manager_t* man, void (*clean)(void* args) );
 
-static
-void* dereference(void* it)
-{
-  if(it == NULL)
-    return NULL;
+void async_task_manager(task_manager_t* man, task_t t);
 
-  val_t* v = malloc(sizeof(val_t)); 
-  memcpy(v,it,sizeof(val_t));
-  return v;
-}
-
-static
-void* worker_thread(void* arg)
-{
-  tsq_t* q = (tsq_t*)arg;
-  while(true){
-   val_t* v = wait_and_pop_tsq(q, dereference); 
-    if(v == NULL) break;
-
-    assert(v != NULL);
-    free(v);
-  } 
-
-  q->stopped = true;
-
-  return NULL;
-}
-
-static
-void free_value(void* it)
-{
-  assert(it != NULL);
-  val_t* v = *(val_t**)it; 
-  free(v);
-}
-
-int main()
-{
-  tsq_t q = {0};
-  init_tsq(&q, sizeof(val_t));
-
-  int rc = pthread_create(&t, NULL, worker_thread, &q);
-  assert(rc == 0);
-
-  int n = 0;
-  for(size_t i = 0; i < 8192; ++i){
-    val_t v = {0};
-    v.n = n;
-    push_tsq(&q, &v, sizeof(val_t) );
-    ++n;
-  }
-
-
-  free_tsq(&q, free_value );
-  pthread_join(t, NULL);
-
-  return 0;
-}
+#endif
 

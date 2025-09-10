@@ -22,73 +22,82 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-
-
-#include "thread_pool_queue.h"
-
 #include <assert.h>
-#include <stddef.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
-void init_thread_pool_queue(thread_pool_queue_t* l)
+#include "util/alg_ds/ds/tsn_queue/tsn_queue.h"
+
+
+typedef struct
 {
-  assert(l != NULL);
+  bool has_value;
+  uint8_t val[1024];
+  uint32_t n;
+} val_t;
 
-  l->sz = 0;
-  l->head = NULL;
-  l->tail = NULL;
+static
+pthread_t t;
+
+static
+void* dereference(void* it)
+{
+  if(it == NULL)
+    return NULL;
+
+  val_t* v = malloc(sizeof(val_t)); 
+  memcpy(v,it,sizeof(val_t));
+  return v;
 }
 
-void free_thread_pool_queue(thread_pool_queue_t* l, void (*free_func)(void*) )
+static
+void* worker_thread(void* arg)
 {
-  assert(l != NULL);
+  tsnq_t* q = (tsnq_t*)arg;
+  while(true){
+   val_t* v = wait_and_pop_tsnq(q, dereference); 
+    if(v == NULL) break;
 
-  while(l->head != NULL){
-    if(free_func != NULL)
-      free_func(&l->head->t);
+    assert(v != NULL);
+    free(v);
+  } 
 
-    thread_pool_queue_node_t* it = l->head;
-    l->head = l->head->next;
-    free(it);
+  q->stopped = true;
+
+  return NULL;
+}
+
+static
+void free_value(void* it)
+{
+  assert(it != NULL);
+  val_t* v = *(val_t**)it; 
+  free(v);
+}
+
+int main()
+{
+  tsnq_t q = {0};
+  init_tsnq(&q, sizeof(val_t));
+
+  int rc = pthread_create(&t, NULL, worker_thread, &q);
+  assert(rc == 0);
+
+  int n = 0;
+  for(size_t i = 0; i < 8192; ++i){
+    val_t v = {0};
+    v.n = n;
+    push_tsnq(&q, &v, sizeof(val_t) );
+    ++n;
   }
 
+  free_tsnq(&q, free_value );
+  pthread_join(t, NULL);
+
+  return 0;
 }
-
-void enqueue_thread_pool_queue(thread_pool_queue_t* l, task_t t)
-{
-  assert(l != NULL);
-  assert(t.func != NULL);
-  assert(t.args != NULL);
-
-  thread_pool_queue_node_t* n = malloc(sizeof(thread_pool_queue_node_t));
-  assert(n != NULL);
-  n->next = NULL;
-  n->t = t;
-
-  if(l->tail != NULL)
-    l->tail->next = n;
-  l->tail = n;
-
-  l->sz += 1;
-
-  if(l->head == NULL)
-    l->head = n;
-}
-
-task_t dequeue_thread_pool_queue(thread_pool_queue_t* l)
-{
-  assert(l != NULL);
-  if(l->sz == 0)
-    return (task_t){.func=NULL, .args= NULL};
-
-  thread_pool_queue_node_t* it = l->head;
-
-  task_t t = l->head->t;
-  l->head = l->head->next;
-  free(it); 
-
-  l->sz -= 1;
-  return t;
-}
-
